@@ -65,6 +65,7 @@ module "ec2_instance" {
   key_name = module.key_pair.key_pair_name
   associate_public_ip_address = true
   subnet_id = module.vpc.public_subnets[0]
+  user_data = "sudo apt update && sudo apt install -y python2 && sudo ln -s /usr/bin/python2 /usr/bin/python"
 
   tags = {
     Terraform   = "true"
