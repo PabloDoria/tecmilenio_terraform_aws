@@ -42,15 +42,15 @@ data "aws_ami" "example" {
   }
 }
 
-resource "aws_security_group_rule" "ssh" {
-  description       = "Tecmilenio SSH Rule Inbound"
-  type              = "ingress"
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = module.vpc.default_security_group_id
-}
+# resource "aws_security_group_rule" "ssh" {
+#   description       = "Tecmilenio SSH Rule Inbound"
+#   type              = "ingress"
+#   from_port         = 22
+#   to_port           = 22
+#   protocol          = "tcp"
+#   cidr_blocks       = ["0.0.0.0/0"]
+#   security_group_id = module.vpc.default_security_group_id
+# }
 
 module "ec2_instance" {
   source = "terraform-aws-modules/ec2-instance/aws"
@@ -65,14 +65,15 @@ module "ec2_instance" {
   key_name = module.key_pair.key_pair_name
   associate_public_ip_address = true
   subnet_id = module.vpc.public_subnets[0]
-  user_data = "sudo apt update && sudo apt install -y python2 && sudo ln -s /usr/bin/python2 /usr/bin/python"
+  user_data = "sudo apt update && sudo apt install -y python3 && sudo ln -s /usr/bin/python3 /usr/bin/python"
 
   tags = {
     Terraform   = "true"
     Environment = "dev"
   }
 
-  ami = data.aws_ami.example.id
+  # ami = data.aws_ami.example.id
+  ami = "ami-0cd59ecaf368e5ccf"
 }
 
 module "key_pair" {
@@ -95,10 +96,33 @@ module "vpc" {
   enable_nat_gateway = true
   enable_vpn_gateway = true
 
+  default_security_group_ingress = [ 
+    {
+      description       = "Tecmilenio SSH Inbound Rule"
+      from_port         = 22
+      to_port           = 22
+      protocol          = "tcp"
+      cidr_blocks       = "0.0.0.0/0"
+    },
+    {
+      description       = "Tecmilenio HTTP Inbound Rule"
+      from_port         = 80
+      to_port           = 80
+      protocol          = "tcp"
+      cidr_blocks       = "0.0.0.0/0"
+    }
+  ]
+
+  default_security_group_egress = [ 
+    {
+      description       = "Tecmilenio SSH Outbound Rule"
+      protocol          = "-1"
+      cidr_blocks       = "0.0.0.0/0"
+    }
+  ]
+
   tags = {
     Terraform = "true"
     Environment = "dev"
   }
 }
-
-
